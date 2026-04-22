@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "design-easily": {
+      "command": "node",
+      "args": ["server/dist/mcp.js"],
+      "cwd": "<absolute-path-to-project-root>"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.local
+.DS_Store
+
+# Local Claude Code MCP config (machine-specific — copy from settings.local.example.json)
+.claude/settings.local.json
