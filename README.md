@@ -1,6 +1,25 @@
 # easy-front-design
 
-网页端设计辅助 Chrome 插件 — 在浏览器上选择元素，通过对话或可视化编辑器修改样式，配置专属模型，AI 直接帮你改源码（以Deepseek为例）。
+网页端设计辅助 Chrome 插件 — 在浏览器上选择元素，通过对话或可视化编辑器修改样式，配置专属模型，AI 直接帮你改源码（以 DeepSeek 为例）。
+
+## 💡 为什么做这个
+
+用 AI 改前端，真正费时间的不是改，是**说清楚要改哪一个**。
+
+> 「把那个卡片右上角、比旁边稍微小一点的那个按钮，颜色调淡一些」
+
+你得把元素描述出来，AI 得靠猜去定位，来回三四轮还常常改错文件。界面越复杂，这个成本越高。
+
+easy-front-design 把这一步换成**直接在页面上点**：
+
+选中元素 → 它的 DOM 层级、当前样式、React 组件信息一并交给 AI → 你说要什么 → AI 直接改源码。
+
+指代歧义从源头消失，一次说清楚。
+
+## 🎬 演示
+
+<!-- 录一段 10~20 秒操作录屏（选元素 → 输入需求 → AI 改码 → 刷新生效），存为 docs/demo.gif 后取消下面这行注释 -->
+<!-- ![演示](docs/demo.gif) -->
 
 ## ✨ 特性
 
@@ -23,17 +42,39 @@ npm install
 
 ### 2. 配置 AI
 
-复制 `.env.example` 为 `.env` 并填入 API Key：
+复制 `.env.example` 为 `.env`：
 
 ```bash
 cp .env.example .env
-# 编辑 .env，填入你的 DeepSeek API Key
 ```
 
-**获取 API Key：**
-- 访问 [DeepSeek 官网](https://platform.deepseek.com/) 注册账号
-- 在控制台获取 API Key
-- 支持的模型：`deepseek-chat`、`deepseek-v4-pro`、`deepseek-v4-flash`
+项目有两条独立的 AI 链路，可分别配置：
+
+| 链路 | 作用 | 环境变量 |
+|------|------|----------|
+| 对话链路 | 面板里的自然语言对话 | `AI_PROVIDER` = `anthropic`（默认）/ `openai` |
+| 改码 Worker | 自动监听队列、修改源文件 | `DEEPSEEK_API_KEY` / `DEEPSEEK_MODEL` / `DEEPSEEK_BASE_URL` |
+
+**模型服务商可插拔**：改码 Worker 调用的是 `/v1/chat/completions` 这个 OpenAI 兼容端点，因此把 `DEEPSEEK_BASE_URL` 指向任意兼容服务即可切换模型，**不需要改代码**。
+
+```bash
+# 对话链路
+AI_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your-key
+# ANTHROPIC_MODEL=claude-sonnet-4-20250514
+
+# 改码 Worker（默认 DeepSeek）
+DEEPSEEK_API_KEY=your-key
+# DEEPSEEK_MODEL=deepseek-chat
+# DEEPSEEK_BASE_URL=https://api.deepseek.com
+
+# 换成其它 OpenAI 兼容服务：只改这三项
+# DEEPSEEK_BASE_URL=https://<your-openai-compatible-host>
+# DEEPSEEK_MODEL=<model-name>
+# DEEPSEEK_API_KEY=<your-key>
+```
+
+DeepSeek 的 API Key 在 [DeepSeek 平台](https://platform.deepseek.com/) 注册后于控制台获取。
 
 ### 3. 构建并启动
 
@@ -175,13 +216,13 @@ npm start
 
 - **扩展**: TypeScript, Preact, Shadow DOM, WebSocket
 - **后端**: Node.js, Express, WebSocket Server
-- **AI**: DeepSeek API（OpenAI 兼容）
+- **AI**: 对话链路 Anthropic / OpenAI；改码 Worker 走 OpenAI 兼容端点（默认 DeepSeek，`baseURL` 可切换）
 - **构建**: Vite, @crxjs/vite-plugin
 - **测试**: Vitest
 
 ## ⚠️ 注意事项
 
-- **DeepSeek API Key 必须配置**，否则无法处理设计请求
+- **`DEEPSEEK_API_KEY` 必须配置**，否则改码 Worker 无法处理设计请求
 - **项目路径必须配置**，否则无法找到源文件
 - **端口 3771 全链路硬编码** — 服务端支持 `PORT` 环境变量，但 Chrome 扩展和 MCP 服务器均硬编码了 `3771`
 - **支持的协议** — `http://`、`https://`、`file://`（本地文件）
